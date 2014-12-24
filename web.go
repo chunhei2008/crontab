@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"net/http"
+)
+
 /*
 *  get	获取任务列表
 *  set	设置任务/添加任务
@@ -10,30 +15,32 @@ package main
 *  stop 停止任务执行，等待正在执行的任务退出
  */
 
-func get() {
+func get(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s", "this is get")
+}
+
+func set(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s", "this is set")
 
 }
 
-func set() {
+func del(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s", "this is del")
 
 }
 
-func del() {
-
+func log(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s", "this is log")
 }
 
-func log() {
-
+func nxt(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s", "this is nxt")
 }
 
-func nxt() {
-
+func load(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s", "this is load")
 }
 
-func load() {
-
-}
-
-func stop() {
-
+func stop(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s", "this is stop")
 }
