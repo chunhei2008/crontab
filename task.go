@@ -1,7 +1,7 @@
 package main
 
 import (
-	"os/exec"
+	//"os/exec"
 	"sync"
 )
 
@@ -14,12 +14,20 @@ type task struct {
 	commit      string //备注
 	time        string //crontab时间 * * * * *
 	crond       string
-	cmd         *exec.Cmd //命令行
+	cmd         string
+	args        []string
 	out         string
 }
 
 var lock *sync.RWMutex
-var tasks map[string]task = make(map[string]task)
+var tasks map[string]task
+
+func init() {
+	tasks = make(map[string]task)
+	tasks["1"] = task{cmd: "php", args: []string{"-v"}}
+	tasks["2"] = task{cmd: "php", args: []string{"-v"}}
+
+}
 
 func getTask() string {
 	lock.RLock()

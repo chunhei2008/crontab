@@ -17,6 +17,7 @@ func main() {
 	loadConf()
 
 	go doTasks(ctr)
+	go doJob()
 
 	http.HandleFunc("/set", set)
 	http.HandleFunc("/get", get)
