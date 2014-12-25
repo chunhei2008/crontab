@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-
+	"fmt"
 	"net/http"
 )
 
@@ -16,7 +16,9 @@ func main() {
 
 	loadConf()
 
-	go doTasks(ctr)
+	fmt.Println(jobs)
+
+	go makeJobs(ctr)
 	go doJob()
 
 	http.HandleFunc("/set", set)

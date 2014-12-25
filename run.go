@@ -10,19 +10,22 @@ import (
 * 任务执行
 * 开始 结束 日志
  */
-var ch chan map[string]task = make(chan map[string]task, 10)
+var ch chan []job = make(chan []job, 10)
 
-func doTasks(ctr chan bool) {
+func makeJobs(ctr chan bool) {
 
 	for {
 		select {
 		case <-ctr:
 			break
-
 		case <-time.Tick(time.Second):
 			if time.Now().Second() == 5 {
 				fmt.Println("do task#############")
-				ch <- tasks
+				tjobs := make([]job, 0)
+				for _, j := range jobs {
+					tjobs = append(tjobs, j)
+				}
+				ch <- tjobs
 			}
 		}
 	}
@@ -35,9 +38,9 @@ func doJob() {
 			if time.Now().Second() == 0 {
 				fmt.Println("do job##############")
 				if len(ch) > 0 {
-					ts := <-ch
-					for _, t := range ts {
-						go runCmd(t)
+					tjobs := <-ch
+					for _, tjob := range tjobs {
+						go runJob(tjob)
 					}
 				}
 
@@ -46,9 +49,9 @@ func doJob() {
 	}
 }
 
-func runCmd(t task) {
+func runJob(j job) {
 	fmt.Println("start")
-	o, _ := exec.Command(t.cmd, t.args...).Output()
+	o, _ := exec.Command(j.Cmd, j.Args...).Output()
 	fmt.Printf("%q\n", o)
 	fmt.Println("end")
 }
