@@ -19,7 +19,11 @@ func makeJobs(ctr chan bool) {
 		case <-ctr:
 			break
 		case <-time.Tick(time.Second):
-			if time.Now().Second() == 5 {
+			t := time.Now()
+			if t.Second() == 5 {
+
+				fmt.Println(t.Minute(), t.Hour(), t.Day(), int(t.Month()), int(t.Weekday()))
+
 				fmt.Println("do task#############")
 				tjobs := make([]job, 0)
 				for _, j := range jobs {
