@@ -21,13 +21,14 @@ var lock sync.RWMutex
 var jobs map[string]job
 
 func loadConf() {
-	fmt.Println("load config start ...")
+	sysLog.Println("load config start ...")
 	lock.Lock()
 	defer lock.Unlock()
 	jobs = make(map[string]job)
 	fp, err := os.Open(*conf)
 	if err != nil {
-		fmt.Print(err)
+		sysLog.Println(err)
+		os.Exit(1)
 	}
 	defer fp.Close()
 	rd := bufio.NewReader(fp)
@@ -40,12 +41,13 @@ func loadConf() {
 		decode := json.NewDecoder(strings.NewReader(line))
 		var j job
 		if decerr := decode.Decode(&j); decerr != nil {
-			fmt.Println("ddd", decerr)
+			sysLog.Printf("%s:%s", decerr, line)
+
 			break
 		}
 		_, parseErr := parseTime(&j)
 		if parseErr != nil {
-			fmt.Println("ppp", parseErr)
+			sysLog.Printf("%s:%s", parseErr, line)
 		} else {
 			h := md5.New()
 			io.WriteString(h, line)
@@ -53,23 +55,23 @@ func loadConf() {
 			jobs[hsum] = j
 		}
 	}
-	fmt.Println("load config end ...")
+	sysLog.Println("load config end .")
 }
 
 func flushConf() {
-	fmt.Println("flush config start ...")
+	sysLog.Println("flush config start ...")
 	lock.RLock()
 	defer lock.RUnlock()
 	fp, err := os.Create(*conf)
 	if err != nil {
-		fmt.Println(err)
+		sysLog.Println(err)
 	}
 	defer fp.Close()
 	for _, j := range jobs {
 		b, _ := json.Marshal(j)
 		fmt.Fprintf(fp, "%s\n", b)
 	}
-	fmt.Println("flush config end ...")
+	sysLog.Println("flush config end .")
 }
 
 func parseTime(j *job) (bool, error) {

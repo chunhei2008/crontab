@@ -1,7 +1,8 @@
 package main
 
 import (
-	"fmt"
+	"bufio"
+	"os"
 	"os/exec"
 	"time"
 )
@@ -42,10 +43,29 @@ func runJobs(ctr chan bool) {
 }
 
 func runJob(j job) {
-	fmt.Println("start")
-	o, _ := exec.Command(j.Cmd, j.Args...).Output()
-	fmt.Printf("%q\n", o)
-	fmt.Println("end")
+
+	cmd := exec.Command(j.Cmd, j.Args...)
+	outpipe, outErr := cmd.StdoutPipe()
+	//errpipe, errErr := cmd.StderrPipe()
+	if outErr != nil {
+		// write into log
+	}
+	cmd.Start()
+	runLog.Printf("%s %s %s start .\n", j.Cmd, j.Args, j.Out)
+	//errrd := bufio.NewReader(errpipe)
+	//errrd.WriteTo("run log")
+	if j.Out != "" {
+		of, ofErr := os.OpenFile(j.Out, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+		if ofErr != nil {
+			runLog.Printf("%s %s %s %s", j.Cmd, j.Args, j.Out, ofErr)
+		} else {
+			defer of.Close()
+			outrd := bufio.NewReader(outpipe)
+			outrd.WriteTo(of)
+		}
+	}
+	cmd.Wait()
+	runLog.Printf("%s %s %s end .\n", j.Cmd, j.Args, j.Out)
 }
 
 func inArray(array []int, item int) bool {

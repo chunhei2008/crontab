@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"net/http"
+	"runtime"
 )
 
 var port *string = flag.String("port", ":8080", "web port")
@@ -16,7 +17,10 @@ const (
 )
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	flag.Parse()
+
+	initLog()
 
 	loadConf()
 
@@ -25,7 +29,7 @@ func main() {
 	http.HandleFunc("/set", set)
 	http.HandleFunc("/get", get)
 	http.HandleFunc("/del", del)
-	http.HandleFunc("/log", log)
+	http.HandleFunc("/log", loger)
 	http.HandleFunc("/load", load)
 	http.HandleFunc("/stop", stop)
 

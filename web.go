@@ -56,7 +56,7 @@ func del(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func log(w http.ResponseWriter, r *http.Request) {
+func loger(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	d := r.FormValue("d")
 
