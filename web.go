@@ -47,6 +47,7 @@ func set(w http.ResponseWriter, r *http.Request) {
 func del(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	h := r.FormValue("h")
+	h = strings.TrimSpace(h)
 	_, err = delJob(h)
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
@@ -63,13 +64,18 @@ func log(w http.ResponseWriter, r *http.Request) {
 	b := reg.MatchString(d)
 
 	if !b {
-		fmt.Println("time err")
+		fmt.Fprintf(w, "%s", "invalid day")
+		return
+	}
+	file := *logs + d + RUN_LOG_POSTFIX
+
+	fp, err := os.Open(file)
+
+	if err != nil {
+		fmt.Fprintf(w, "%s", err)
+		return
 	}
 
-	fp, err := os.Open("./web.go")
-	if err != nil {
-		fmt.Println("ERR")
-	}
 	defer fp.Close()
 	rd := bufio.NewReader(fp)
 	rd.WriteTo(w)

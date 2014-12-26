@@ -49,6 +49,7 @@ func setJob(h string, j string) (bool, error) {
 	io.WriteString(md5er, j)
 	hsum := fmt.Sprintf("%x", md5er.Sum(nil))
 	jobs[hsum] = jj
+	go flushConf()
 	return true, nil
 }
 
@@ -57,6 +58,7 @@ func delJob(h string) (bool, error) {
 	defer lock.Unlock()
 	if _, exists := jobs[h]; exists {
 		delete(jobs, h)
+		go flushConf()
 		return true, nil
 	}
 	return false, errors.New("not exists")

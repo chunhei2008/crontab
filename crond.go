@@ -10,12 +10,15 @@ var logs *string = flag.String("logs", "logs/", "log path")
 var conf *string = flag.String("conf", "crontab.conf", "crontab config")
 var ctr chan bool
 
+const (
+	RUN_LOG_POSTFIX = `_run.log`
+	SVR_LOG         = `svr.log`
+)
+
 func main() {
 	flag.Parse()
 
 	loadConf()
-
-	flushConf()
 
 	go runJobs(ctr)
 

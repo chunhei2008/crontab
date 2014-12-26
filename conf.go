@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/md5"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -39,13 +40,18 @@ func loadConf() {
 		decode := json.NewDecoder(strings.NewReader(line))
 		var j job
 		if decerr := decode.Decode(&j); decerr != nil {
+			fmt.Println("ddd", decerr)
 			break
 		}
-		parseTime(&j)
-		h := md5.New()
-		io.WriteString(h, line)
-		hsum := fmt.Sprintf("%x", h.Sum(nil))
-		jobs[hsum] = j
+		_, parseErr := parseTime(&j)
+		if parseErr != nil {
+			fmt.Println("ppp", parseErr)
+		} else {
+			h := md5.New()
+			io.WriteString(h, line)
+			hsum := fmt.Sprintf("%x", h.Sum(nil))
+			jobs[hsum] = j
+		}
 	}
 	fmt.Println("load config end ...")
 }
@@ -66,15 +72,20 @@ func flushConf() {
 	fmt.Println("flush config end ...")
 }
 
-func parseTime(j *job) {
-	// todo regexp
+func parseTime(j *job) (bool, error) {
+	regtime := regexp.MustCompile(`^((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)$`)
+
+	if !regtime.MatchString(j.Time) {
+		return false, errors.New("time error")
+	}
+
 	respace := regexp.MustCompile(`\s+`)
 	restar := regexp.MustCompile(`\*+`)
 	r1 := restar.ReplaceAllString(j.Time, "*")
 	r2 := respace.ReplaceAllString(r1, " ")
 	r3 := strings.SplitN(r2, " ", -1)
 	if len(r3) != 5 {
-		fmt.Println("err")
+		return false, errors.New("time error")
 	} else {
 		j.minute = parseNumber(r3[0], 0, 59)
 		j.hour = parseNumber(r3[1], 0, 23)
@@ -82,6 +93,7 @@ func parseTime(j *job) {
 		j.month = parseNumber(r3[3], 1, 12)
 		j.dow = parseNumber(r3[4], 0, 6)
 	}
+	return true, nil
 }
 
 func parseNumber(s string, min, max int) []int {
