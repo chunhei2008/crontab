@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
-	"time"
 )
 
 /*
@@ -58,12 +58,14 @@ func del(w http.ResponseWriter, r *http.Request) {
 func log(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	d := r.FormValue("d")
-	t, err := time.Parse(`20060102`, d)
 
-	if err != nil {
+	reg := regexp.MustCompile(`^[0-9]{8}$`)
+	b := reg.MatchString(d)
+
+	if !b {
 		fmt.Println("time err")
 	}
-	fmt.Println(t)
+
 	fp, err := os.Open("./web.go")
 	if err != nil {
 		fmt.Println("ERR")
