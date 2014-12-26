@@ -1,8 +1,12 @@
 package main
 
 import (
-//"os/exec"
-//"sync"
+	"crypto/md5"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"strings"
 )
 
 /*
@@ -15,20 +19,45 @@ type job struct {
 	Args    []string `json:"args"`
 	Out     string   `json:"out"`
 	Comment string   `json:"comment"`
+	minute  []int
+	hour    []int
+	dom     []int
+	month   []int
+	dow     []int
 }
 
-func getTask() {
-
+func getJobs() ([]byte, error) {
+	lock.RLock()
+	defer lock.RUnlock()
+	allJobs, err := json.Marshal(jobs)
+	if err != nil {
+		return nil, err
+	}
+	return allJobs, nil
 }
 
-func setTask() {
-
+func setJob(h string, j string) (bool, error) {
+	lock.Lock()
+	defer lock.Unlock()
+	decode := json.NewDecoder(strings.NewReader(j))
+	var jj job
+	if decerr := decode.Decode(&jj); decerr != nil {
+		return false, decerr
+	}
+	parseTime(&jj)
+	md5er := md5.New()
+	io.WriteString(md5er, j)
+	hsum := fmt.Sprintf("%x", md5er.Sum(nil))
+	jobs[hsum] = jj
+	return true, nil
 }
 
-func delTask() {
-
-}
-
-func nxtTask() {
-
+func delJob(h string) (bool, error) {
+	lock.Lock()
+	defer lock.Unlock()
+	if _, exists := jobs[h]; exists {
+		delete(jobs, h)
+		return true, nil
+	}
+	return false, errors.New("not exists")
 }

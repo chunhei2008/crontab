@@ -10,9 +10,8 @@ import (
 * 任务执行
 * 开始 结束 日志
  */
-var ch chan []job = make(chan []job, 10)
 
-func makeJobs(ctr chan bool) {
+func runJobs(ctr chan bool) {
 
 	for {
 		select {
@@ -20,31 +19,20 @@ func makeJobs(ctr chan bool) {
 			break
 		case <-time.Tick(time.Second):
 			t := time.Now()
-			if t.Second() == 5 {
+			if t.Second() == 0 {
+				minute := t.Minute()
+				hour := t.Hour()
+				dom := t.Day()
+				month := int(t.Month())
+				dow := int(t.Weekday())
 
-				fmt.Println(t.Minute(), t.Hour(), t.Day(), int(t.Month()), int(t.Weekday()))
-
-				fmt.Println("do task#############")
-				tjobs := make([]job, 0)
 				for _, j := range jobs {
-					tjobs = append(tjobs, j)
-				}
-				ch <- tjobs
-			}
-		}
-	}
-}
-
-func doJob() {
-	for {
-		select {
-		case <-time.Tick(time.Second):
-			if time.Now().Second() == 0 {
-				fmt.Println("do job##############")
-				if len(ch) > 0 {
-					tjobs := <-ch
-					for _, tjob := range tjobs {
-						go runJob(tjob)
+					if inArray(j.minute, minute) &&
+						inArray(j.hour, hour) &&
+						inArray(j.dom, dom) &&
+						inArray(j.month, month) &&
+						inArray(j.dow, dow) {
+						go runJob(j)
 					}
 				}
 
@@ -58,4 +46,16 @@ func runJob(j job) {
 	o, _ := exec.Command(j.Cmd, j.Args...).Output()
 	fmt.Printf("%q\n", o)
 	fmt.Println("end")
+}
+
+func inArray(array []int, item int) bool {
+	if len(array) < 1 {
+		return false
+	}
+	for _, v := range array {
+		if item == v {
+			return true
+		}
+	}
+	return false
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"net/http"
 )
 
@@ -16,16 +15,14 @@ func main() {
 
 	loadConf()
 
-	fmt.Println(jobs)
+	flushConf()
 
-	go makeJobs(ctr)
-	go doJob()
+	go runJobs(ctr)
 
 	http.HandleFunc("/set", set)
 	http.HandleFunc("/get", get)
 	http.HandleFunc("/del", del)
 	http.HandleFunc("/log", log)
-	http.HandleFunc("/nxt", nxt)
 	http.HandleFunc("/load", load)
 	http.HandleFunc("/stop", stop)
 
