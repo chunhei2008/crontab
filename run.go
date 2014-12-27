@@ -50,7 +50,12 @@ func runJob(j job) {
 	if outErr != nil {
 		// write into log
 	}
-	cmd.Start()
+	startErr := cmd.Start()
+	if startErr != nil {
+		runLog.Println("start err")
+		return
+	}
+	//fmt.Println(cmd.Process.Pid) 获取进程ID
 	runLog.Printf("%s %s %s start .\n", j.Cmd, j.Args, j.Out)
 	//errrd := bufio.NewReader(errpipe)
 	//errrd.WriteTo("run log")
