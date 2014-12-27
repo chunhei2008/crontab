@@ -18,48 +18,59 @@ import (
 * 任务配置文件，读取&更新
  */
 var lock sync.RWMutex
-var jobs map[string]job
+var jobs map[string]job = map[string]job{}
 
-func loadConf() {
-	sysLog.Println("load config start ...")
-	lock.Lock()
-	defer lock.Unlock()
-	jobs = make(map[string]job)
+func loadConf() (bool, error) {
+	sysLog.Println("Load config start ...")
+	tjobs := make(map[string]job)
 	fp, err := os.Open(*conf)
 	if err != nil {
-		sysLog.Println(err)
-		os.Exit(1)
+		sysLog.Printf("Err %s .\n", err)
+		return false, err
 	}
 	defer fp.Close()
 	rd := bufio.NewReader(fp)
 
 	for {
-		line, err := rd.ReadString('\n')
-		if err != nil && err != io.EOF {
-			break
+		line, rdErr := rd.ReadString('\n')
+
+		if rdErr != nil && rdErr != io.EOF {
+			sysLog.Println("Err %s.\n", rdErr)
+			return false, rdErr
+		}
+		line = strings.TrimSpace(line)
+		if line == "" {
+			if rdErr == io.EOF {
+				break
+			}
+			continue
 		}
 		decode := json.NewDecoder(strings.NewReader(line))
 		var j job
-		if decerr := decode.Decode(&j); decerr != nil {
-			sysLog.Printf("%s:%s", decerr, line)
-
-			break
+		if decErr := decode.Decode(&j); decErr != nil {
+			sysLog.Printf("Err %s %s.\n", decErr, line)
+			return false, decErr
 		}
 		_, parseErr := parseTime(&j)
 		if parseErr != nil {
-			sysLog.Printf("%s:%s", parseErr, line)
+			sysLog.Printf("Err %s %s.\n", parseErr, line)
+			return false, parseErr
 		} else {
 			h := md5.New()
 			io.WriteString(h, line)
 			hsum := fmt.Sprintf("%x", h.Sum(nil))
-			jobs[hsum] = j
+			tjobs[hsum] = j
 		}
 	}
-	sysLog.Println("load config end .")
+	lock.Lock()
+	defer lock.Unlock()
+	jobs = tjobs
+	sysLog.Println("Load config end.")
+	return true, nil
 }
 
 func flushConf() {
-	sysLog.Println("flush config start ...")
+	sysLog.Println("Flush config start ...")
 	lock.RLock()
 	defer lock.RUnlock()
 	fp, err := os.Create(*conf)
@@ -71,14 +82,14 @@ func flushConf() {
 		b, _ := json.Marshal(j)
 		fmt.Fprintf(fp, "%s\n", b)
 	}
-	sysLog.Println("flush config end .")
+	sysLog.Println("Flush config end.")
 }
 
 func parseTime(j *job) (bool, error) {
 	regtime := regexp.MustCompile(`^((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)$`)
 
 	if !regtime.MatchString(j.Time) {
-		return false, errors.New("time error")
+		return false, errors.New("Time error")
 	}
 
 	respace := regexp.MustCompile(`\s+`)
@@ -87,7 +98,7 @@ func parseTime(j *job) (bool, error) {
 	r2 := respace.ReplaceAllString(r1, " ")
 	r3 := strings.SplitN(r2, " ", -1)
 	if len(r3) != 5 {
-		return false, errors.New("time error")
+		return false, errors.New("Time error")
 	} else {
 		j.minute = parseNumber(r3[0], 0, 59)
 		j.hour = parseNumber(r3[1], 0, 23)

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"os"
 	"os/exec"
+	"strconv"
 	"time"
 )
 
@@ -11,15 +12,20 @@ import (
 * 任务执行
 * 开始 结束 日志
  */
-var rungings map[int]job = make(map[int]job)
+var runnings map[string]job = make(map[string]job)
+var tick *time.Ticker
 
-func runJobs(ctr chan bool) {
-
+func runJobs() {
+	tick = time.NewTicker(time.Second)
 	for {
 		select {
-		case <-ctr:
-			break
-		case <-time.Tick(time.Second):
+		case <-stopCh:
+			tick.Stop()
+			sysLog.Println("Stop crontab")
+		case <-startCh:
+			tick = time.NewTicker(time.Second)
+			sysLog.Println("Start crontab")
+		case <-tick.C:
 			t := time.Now()
 			if t.Second() == 0 {
 				minute := t.Minute()
@@ -46,9 +52,8 @@ func runJobs(ctr chan bool) {
 func runJob(j job) {
 	cmd := exec.Command(j.Cmd, j.Args...)
 	outpipe, outErr := cmd.StdoutPipe()
-	//errpipe, errErr := cmd.StderrPipe()
 	if outErr != nil {
-		// write into log
+		runLog.Printf("[Err] %s %s %s %s\n", j.Cmd, j.Args, j.Out, outErr)
 	}
 	startErr := cmd.Start()
 	if startErr != nil {
@@ -56,9 +61,11 @@ func runJob(j job) {
 		return
 	}
 	pid := cmd.Process.Pid
-	rungings[pid] = j
+	spid := strconv.Itoa(pid)
+	j.Start = time.Now().String()
+	runnings[spid] = j
 	defer func() {
-		delete(rungings, pid)
+		delete(runnings, spid)
 		runLog.Printf("[End] pid.%d %s %s %s\n", pid, j.Cmd, j.Args, j.Out)
 	}()
 	runLog.Printf("[Start] pid.%d %s %s %s\n", pid, j.Cmd, j.Args, j.Out)

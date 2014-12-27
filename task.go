@@ -14,11 +14,12 @@ import (
  */
 
 type job struct {
-	Time    string   `json:"time"`
-	Cmd     string   `json:"cmd"`
-	Args    []string `json:"args"`
-	Out     string   `json:"out"`
-	Comment string   `json:"comment"`
+	Time    string   `json:"time"`    //任务执行时间
+	Cmd     string   `json:"cmd"`     //可执行程序
+	Args    []string `json:"args"`    //执行参数
+	Out     string   `json:"out"`     //输出文件
+	Comment string   `json:"comment"` //任务备注
+	Start   string   `json:"start"`   //任务单次执行仅用作状态使用
 	minute  []int
 	hour    []int
 	dom     []int

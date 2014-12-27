@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -82,15 +83,30 @@ func loger(w http.ResponseWriter, r *http.Request) {
 }
 
 func load(w http.ResponseWriter, r *http.Request) {
-	loadConf()
-	fmt.Fprintf(w, "%s", "success")
+	loaded, loadErr := loadConf()
+	if loaded {
+		fmt.Fprintf(w, "%s", "success")
+	} else {
+		fmt.Fprintf(w, "%s", loadErr)
+	}
+
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%s", "success")
+	brunning, err := json.Marshal(runnings)
+	if err != nil {
+		fmt.Fprintf(w, "%s", err)
+	} else {
+		fmt.Fprintf(w, "%s", brunning)
+	}
 }
 
 func stop(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%s", "this is stop")
-	// TODO stop all jobs
+	stopCh <- true
+	fmt.Fprintf(w, "%s", "success")
+}
+
+func start(w http.ResponseWriter, r *http.Request) {
+	startCh <- true
+	fmt.Fprintf(w, "%s", "success")
 }
