@@ -11,6 +11,7 @@ import (
 * 任务执行
 * 开始 结束 日志
  */
+var rungings map[int]job = make(map[int]job)
 
 func runJobs(ctr chan bool) {
 
@@ -43,7 +44,6 @@ func runJobs(ctr chan bool) {
 }
 
 func runJob(j job) {
-
 	cmd := exec.Command(j.Cmd, j.Args...)
 	outpipe, outErr := cmd.StdoutPipe()
 	//errpipe, errErr := cmd.StderrPipe()
@@ -52,25 +52,30 @@ func runJob(j job) {
 	}
 	startErr := cmd.Start()
 	if startErr != nil {
-		runLog.Println("start err")
+		runLog.Printf("[Err] %s %s %s %s\n", j.Cmd, j.Args, j.Out, startErr)
 		return
 	}
-	//fmt.Println(cmd.Process.Pid) 获取进程ID
-	runLog.Printf("%s %s %s start .\n", j.Cmd, j.Args, j.Out)
-	//errrd := bufio.NewReader(errpipe)
-	//errrd.WriteTo("run log")
+	pid := cmd.Process.Pid
+	rungings[pid] = j
+	defer func() {
+		delete(rungings, pid)
+		runLog.Printf("[End] pid.%d %s %s %s\n", pid, j.Cmd, j.Args, j.Out)
+	}()
+	runLog.Printf("[Start] pid.%d %s %s %s\n", pid, j.Cmd, j.Args, j.Out)
 	if j.Out != "" {
 		of, ofErr := os.OpenFile(j.Out, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		if ofErr != nil {
-			runLog.Printf("%s %s %s %s", j.Cmd, j.Args, j.Out, ofErr)
+			runLog.Printf("[Err] pid.%d %s %s %s %s", pid, j.Cmd, j.Args, j.Out, ofErr)
 		} else {
 			defer of.Close()
 			outrd := bufio.NewReader(outpipe)
 			outrd.WriteTo(of)
 		}
 	}
-	cmd.Wait()
-	runLog.Printf("%s %s %s end .\n", j.Cmd, j.Args, j.Out)
+	waitErr := cmd.Wait()
+	if waitErr != nil {
+		runLog.Printf("[Err] pid.%d %s %s %s %s\n", pid, j.Cmd, j.Args, j.Out, waitErr)
+	}
 }
 
 func inArray(array []int, item int) bool {

@@ -86,6 +86,10 @@ func load(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", "success")
 }
 
+func status(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s", "success")
+}
+
 func stop(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", "this is stop")
 	// TODO stop all jobs

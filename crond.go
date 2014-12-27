@@ -39,6 +39,7 @@ func main() {
 	http.HandleFunc("/log", loger)
 	http.HandleFunc("/load", load)
 	http.HandleFunc("/stop", stop)
+	http.HandleFunc("/status", status)
 
 	startErr := http.ListenAndServe(*port, nil)
 	if startErr != nil {
