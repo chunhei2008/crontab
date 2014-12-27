@@ -82,8 +82,8 @@ func loger(w http.ResponseWriter, r *http.Request) {
 }
 
 func load(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%s", "this is load")
-	//TODO reload crontab.conf
+	loadConf()
+	fmt.Fprintf(w, "%s", "success")
 }
 
 func stop(w http.ResponseWriter, r *http.Request) {

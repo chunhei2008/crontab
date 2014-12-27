@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"net/http"
+	"os"
 	"runtime"
 )
 
@@ -18,7 +20,12 @@ const (
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	flag.Parse()
+
+	if runtime.GOOS == "linux" && *d {
+		daemon()
+	}
 
 	initLog()
 
@@ -33,5 +40,10 @@ func main() {
 	http.HandleFunc("/load", load)
 	http.HandleFunc("/stop", stop)
 
-	http.ListenAndServe(*port, nil)
+	startErr := http.ListenAndServe(*port, nil)
+	if startErr != nil {
+		fmt.Println("start server failed.", startErr)
+		os.Exit(1)
+	}
+	sysLog.Println("start server success.")
 }
