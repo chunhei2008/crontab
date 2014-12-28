@@ -15,9 +15,10 @@ import (
 *  set	设置任务/添加任务
 *  del	删除任务
 *  log	任务执行日志
-*  nxt	下一分钟要执行的任务
 *  load 重新加载任务列表
-*  stop 停止任务执行，等待正在执行的任务退出
+*  stop 停止任务触发，正在执行的任务正常执行
+*  start开始任务触发，
+*  status获取正在执行的任务
  */
 
 func get(w http.ResponseWriter, r *http.Request) {
