@@ -33,7 +33,7 @@ func runJobs() {
 				dom := t.Day()
 				month := int(t.Month())
 				dow := int(t.Weekday())
-
+				lock.RLock()
 				for _, j := range jobs {
 					if inArray(j.minute, minute) &&
 						inArray(j.hour, hour) &&
@@ -43,7 +43,7 @@ func runJobs() {
 						go runJob(j)
 					}
 				}
-
+				lock.RUnlock()
 			}
 		}
 	}
@@ -62,7 +62,7 @@ func runJob(j job) {
 	}
 	pid := cmd.Process.Pid
 	spid := strconv.Itoa(pid)
-	j.Start = time.Now().String()
+	j.Start = time.Now().Format(`2006-01-02 15:04:05`)
 	runnings[spid] = j
 	defer func() {
 		delete(runnings, spid)
