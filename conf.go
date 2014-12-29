@@ -69,13 +69,14 @@ func loadConf() (bool, error) {
 	return true, nil
 }
 
-func flushConf() {
+func flushConf() (bool, error) {
 	sysLog.Println("Flush config start ...")
 	lock.RLock()
 	defer lock.RUnlock()
 	fp, err := os.Create(*conf)
 	if err != nil {
 		sysLog.Println(err)
+		return false, err
 	}
 	defer fp.Close()
 	for _, j := range jobs {
@@ -83,6 +84,7 @@ func flushConf() {
 		fmt.Fprintf(fp, "%s\n", b)
 	}
 	sysLog.Println("Flush config end.")
+	return true, nil
 }
 
 func parseTime(j *job) (bool, error) {
