@@ -53,11 +53,11 @@ func runJob(j job) {
 	cmd := exec.Command(j.Cmd, j.Args...)
 	outpipe, outErr := cmd.StdoutPipe()
 	if outErr != nil {
-		runLog.Printf("[Err] %s %s %s %s\n", j.Cmd, j.Args, j.Out, outErr)
+		runLog.lg.Printf("[Err] %s %s %s %s\n", j.Cmd, j.Args, j.Out, outErr)
 	}
 	startErr := cmd.Start()
 	if startErr != nil {
-		runLog.Printf("[Err] %s %s %s %s\n", j.Cmd, j.Args, j.Out, startErr)
+		runLog.lg.Printf("[Err] %s %s %s %s\n", j.Cmd, j.Args, j.Out, startErr)
 		return
 	}
 	pid := cmd.Process.Pid
@@ -66,13 +66,13 @@ func runJob(j job) {
 	runnings[spid] = j
 	defer func() {
 		delete(runnings, spid)
-		runLog.Printf("[End] pid.%d %s %s %s\n", pid, j.Cmd, j.Args, j.Out)
+		runLog.lg.Printf("[End] pid.%d %s %s %s\n", pid, j.Cmd, j.Args, j.Out)
 	}()
-	runLog.Printf("[Start] pid.%d %s %s %s\n", pid, j.Cmd, j.Args, j.Out)
+	runLog.lg.Printf("[Start] pid.%d %s %s %s\n", pid, j.Cmd, j.Args, j.Out)
 	if j.Out != "" {
 		of, ofErr := os.OpenFile(j.Out, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		if ofErr != nil {
-			runLog.Printf("[Err] pid.%d %s %s %s %s", pid, j.Cmd, j.Args, j.Out, ofErr)
+			runLog.lg.Printf("[Err] pid.%d %s %s %s %s", pid, j.Cmd, j.Args, j.Out, ofErr)
 		} else {
 			defer of.Close()
 			outrd := bufio.NewReader(outpipe)
@@ -81,7 +81,7 @@ func runJob(j job) {
 	}
 	waitErr := cmd.Wait()
 	if waitErr != nil {
-		runLog.Printf("[Err] pid.%d %s %s %s %s\n", pid, j.Cmd, j.Args, j.Out, waitErr)
+		runLog.lg.Printf("[Err] pid.%d %s %s %s %s\n", pid, j.Cmd, j.Args, j.Out, waitErr)
 	}
 }
 

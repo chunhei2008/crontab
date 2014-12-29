@@ -15,7 +15,7 @@ var stopCh chan bool = make(chan bool)
 var startCh chan bool = make(chan bool)
 
 const (
-	RUN_LOG_POSTFIX = `_run.log`
+	RUN_LOG_POSTFIX = `run.log`
 	SVR_LOG         = `svr.log`
 )
 

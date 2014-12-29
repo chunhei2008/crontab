@@ -69,7 +69,7 @@ func loger(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%s", "invalid day")
 		return
 	}
-	file := *logs + d + RUN_LOG_POSTFIX
+	file := *logs + d + "_" + RUN_LOG_POSTFIX
 
 	fp, err := os.Open(file)
 

@@ -8,19 +8,18 @@ import (
 )
 
 var sysLog *log.Logger
-var runLog *log.Logger
+var runLog *wyLogger
 
 const DATEFORMAT = `20060102`
 
 func initLog() {
 	sysLogFile, _ := os.OpenFile(*logs+"sys.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
-	runLogFile, _ := os.OpenFile(*logs+"run.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+	//	runLogFile, _ := os.OpenFile(*logs+"run.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 
 	sysLog = log.New(sysLogFile, "", log.LstdFlags)
-	runLog = log.New(runLogFile, "", log.LstdFlags)
+	//	runLog = log.New(runLogFile, "", log.LstdFlags)
+	runLog = newWyLogger(*logs, RUN_LOG_POSTFIX)
 }
-
-var mylog = newWyLogger(*logs, "a.log")
 
 type wyLogger struct {
 	dir      string
@@ -68,7 +67,7 @@ func (l *wyLogger) rename() {
 		t, _ := time.Parse(DATEFORMAT, tf)
 		l._date = &t
 		fn := l.dir + tf + "_" + l.filename
-		l.logfile, _ = os.OpenFile(fn, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0)
+		l.logfile, _ = os.OpenFile(fn, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
 		l.lg = log.New(l.logfile, "", log.LstdFlags)
 	}
 }
