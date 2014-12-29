@@ -12,7 +12,7 @@ import (
 * 任务执行
 * 开始 结束 日志
  */
-var runnings map[string]job = make(map[string]job)
+var runnings map[string]job = make(map[string]job, 20)
 var tick *time.Ticker
 
 func runJobs() {

@@ -22,7 +22,7 @@ var jobs map[string]job = map[string]job{}
 
 func loadConf() (bool, error) {
 	sysLog.Println("Load config start ...")
-	tjobs := make(map[string]job)
+	tjobs := make(map[string]job, 20)
 	fp, err := os.Open(*conf)
 	if err != nil {
 		sysLog.Printf("Err %s .\n", err)
