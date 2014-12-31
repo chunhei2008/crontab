@@ -94,7 +94,9 @@ func load(w http.ResponseWriter, r *http.Request) {
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
+	runLock.RLock()
 	brunning, err := json.Marshal(runnings)
+	runLock.RUnlock()
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
 	} else {

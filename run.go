@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -13,6 +14,7 @@ import (
 * 开始 结束 日志
  */
 var runnings map[string]job = make(map[string]job, 20)
+var runLock sync.RWMutex
 var tick *time.Ticker
 
 func runJobs() {
@@ -63,8 +65,12 @@ func runJob(j job) {
 	pid := cmd.Process.Pid
 	spid := strconv.Itoa(pid)
 	j.Start = time.Now().Format(`2006-01-02 15:04:05`)
+	runLock.Lock()
 	runnings[spid] = j
+	runLock.Unlock()
 	defer func() {
+		runLock.Lock()
+		defer runLock.Unlock()
 		delete(runnings, spid)
 		runLog.lg.Printf("[End] pid.%d %s %s %s\n", pid, j.Cmd, j.Args, j.Out)
 	}()
