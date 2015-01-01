@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"log"
+	"fmt"
 	"os"
 	"runtime"
 	"syscall"
@@ -21,25 +21,31 @@ func fork() (int, syscall.Errno) {
 	}
 
 	return int(r1), 0
-
 }
 
-func daemon() {
+func daemon(chdir bool) {
 	pid, err := fork()
 	if err != 0 {
-		log.Fatalln("Daemon Error!")
+		fmt.Println("Daemon error!")
+		os.Exit(1)
 	}
-	if pid != 0 {
+
+	if pid < 0 {
+		fmt.Println("Daemon error!")
+		os.Exit(1)
+	} else if pid > 0 {
 		os.Exit(0)
+	} else if pid == 0 {
+		syscall.Setsid()
+		if chdir {
+			os.Chdir("/")
+		}
+		syscall.Umask(0)
+		f, _ := os.Open("/dev/null")
+		devnull := f.Fd()
+
+		syscall.Dup2(int(devnull), int(os.Stdin.Fd()))
+		syscall.Dup2(int(devnull), int(os.Stdout.Fd()))
+		syscall.Dup2(int(devnull), int(os.Stderr.Fd()))
 	}
-	syscall.Umask(0)
-	syscall.Setsid()
-	os.Chdir("/")
-
-	f, _ := os.Open("/dev/null")
-	devnull := f.Fd()
-
-	syscall.Dup2(int(devnull), int(os.Stdin.Fd()))
-	syscall.Dup2(int(devnull), int(os.Stdout.Fd()))
-	syscall.Dup2(int(devnull), int(os.Stderr.Fd()))
 }

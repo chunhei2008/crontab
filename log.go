@@ -10,14 +10,10 @@ import (
 var sysLog *log.Logger
 var runLog *wyLogger
 
-const DATEFORMAT = `20060102`
-
 func initLog() {
 	sysLogFile, _ := os.OpenFile(*logs+"sys.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
-	//	runLogFile, _ := os.OpenFile(*logs+"run.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 
 	sysLog = log.New(sysLogFile, "", log.LstdFlags)
-	//	runLog = log.New(runLogFile, "", log.LstdFlags)
 	runLog = newWyLogger(*logs, RUN_LOG_POSTFIX)
 }
 
@@ -29,8 +25,6 @@ type wyLogger struct {
 	logfile  *os.File
 	lg       *log.Logger
 }
-
-// 启动时判断 是否需要rename  判断文件是否存在 存在open 不存在创建（一样的），将文件挂到log上，
 
 func newWyLogger(dir string, filename string) *wyLogger {
 
@@ -45,8 +39,6 @@ func newWyLogger(dir string, filename string) *wyLogger {
 	return logger
 }
 
-//当前时间跟记录的日志时间比较是否稍后
-
 func (l *wyLogger) isMustRename() bool {
 	t, _ := time.Parse(DATEFORMAT, time.Now().Format(DATEFORMAT))
 	if t.After(*l._date) {
@@ -54,8 +46,6 @@ func (l *wyLogger) isMustRename() bool {
 	}
 	return false
 }
-
-//关闭之前的log日志文件，用当前日期创建文件作为日志记录文件
 
 func (l *wyLogger) rename() {
 

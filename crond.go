@@ -17,6 +17,7 @@ var startCh chan bool = make(chan bool)
 const (
 	RUN_LOG_POSTFIX = `run.log`
 	SVR_LOG         = `svr.log`
+	DATEFORMAT      = `20060102`
 )
 
 func main() {
@@ -25,7 +26,7 @@ func main() {
 	flag.Parse()
 
 	if runtime.GOOS == "linux" && *d {
-		daemon()
+		daemon(false)
 	}
 
 	initLog()
