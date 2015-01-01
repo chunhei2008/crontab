@@ -17,8 +17,9 @@ import (
 /*
 * 任务配置文件，读取&更新
  */
-var lock sync.RWMutex
+var lock *sync.RWMutex = new(sync.RWMutex)
 var jobs map[string]job = map[string]job{}
+var regtime *regexp.Regexp = regexp.MustCompile(`^((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)$`)
 
 func loadConf() (bool, error) {
 	sysLog.Println("Load config start ...")
@@ -88,8 +89,6 @@ func flushConf() (bool, error) {
 }
 
 func parseTime(j *job) (bool, error) {
-	regtime := regexp.MustCompile(`^((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)\s+((\*(/[0-9]+)?)|[0-9\-\,/]+)$`)
-
 	if !regtime.MatchString(j.Time) {
 		return false, errors.New("Time error")
 	}

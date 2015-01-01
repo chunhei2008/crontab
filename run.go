@@ -14,12 +14,13 @@ import (
 * 开始 结束 日志
  */
 var runnings map[string]job = make(map[string]job, 20)
-var runLock sync.RWMutex
+var runLock *sync.RWMutex = new(sync.RWMutex)
 var tick *time.Ticker
 
 func runJobs() {
 	tick = time.NewTicker(time.Second)
 	for {
+		sysLog.Println("tick")
 		select {
 		case <-stopCh:
 			tick.Stop()

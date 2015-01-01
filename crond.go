@@ -25,10 +25,6 @@ func main() {
 
 	flag.Parse()
 
-	if runtime.GOOS == "linux" && *d {
-		daemon(false)
-	}
-
 	initLog()
 
 	loaded, loadErr := loadConf()
