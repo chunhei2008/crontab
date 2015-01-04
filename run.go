@@ -20,7 +20,6 @@ var tick *time.Ticker
 func runJobs() {
 	tick = time.NewTicker(time.Second)
 	for {
-		sysLog.Println("tick")
 		select {
 		case <-stopCh:
 			tick.Stop()
