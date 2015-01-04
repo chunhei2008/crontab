@@ -72,8 +72,6 @@ func loadConf() (bool, error) {
 
 func flushConf() (bool, error) {
 	sysLog.Println("Flush config start ...")
-	lock.RLock()
-	defer lock.RUnlock()
 	fp, err := os.Create(*conf)
 	if err != nil {
 		sysLog.Println(err)
