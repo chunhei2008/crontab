@@ -23,7 +23,7 @@ var restar *regexp.Regexp = regexp.MustCompile(`\*+`)
 
 func loadConf() (bool, error) {
 	sysLog.Println("Load config start ...")
-	tjobs := make(map[string]job, 20)
+	tjobs := make(map[string]*job, 20)
 	fp, err := os.Open(*conf)
 	if err != nil {
 		sysLog.Printf("Err %s .\n", err)
@@ -60,7 +60,7 @@ func loadConf() (bool, error) {
 			h := md5.New()
 			io.WriteString(h, line)
 			hsum := fmt.Sprintf("%x", h.Sum(nil))
-			tjobs[hsum] = j
+			tjobs[hsum] = &j
 		}
 	}
 	configJobs.replaceJobs(tjobs)

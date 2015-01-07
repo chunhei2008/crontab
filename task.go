@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"sync"
+	"time"
 )
 
 /*
@@ -24,15 +25,15 @@ type job struct {
 }
 
 func NewJobs() *Jobs {
-	return &Jobs{mj: make(map[string]job), lk: new(sync.RWMutex)}
+	return &Jobs{mj: make(map[string]*job), lk: new(sync.RWMutex)}
 }
 
 type Jobs struct {
-	mj map[string]job
+	mj map[string]*job
 	lk *sync.RWMutex
 }
 
-func (jobs *Jobs) add(k string, v job) {
+func (jobs *Jobs) add(k string, v *job) {
 	jobs.lk.Lock()
 	defer jobs.lk.Unlock()
 	jobs.mj[k] = v
@@ -50,14 +51,36 @@ func (jobs *Jobs) json() ([]byte, error) {
 	return json.Marshal(jobs.mj)
 }
 
-func (jobs *Jobs) getJobs() map[string]job {
+func (jobs *Jobs) getJobs() map[string]*job {
 	jobs.lk.RLock()
 	defer jobs.lk.RUnlock()
 	return jobs.mj
 }
 
-func (jobs *Jobs) replaceJobs(mj map[string]job) {
+func (jobs *Jobs) replaceJobs(mj map[string]*job) {
 	jobs.lk.Lock()
 	defer jobs.lk.Unlock()
 	jobs.mj = mj
+}
+
+func (jobs *Jobs) runJobs() {
+	t := time.Now()
+	if t.Second() == 0 {
+		jobs.lk.Lock()
+		defer jobs.lk.Unlock()
+		minute := t.Minute()
+		hour := t.Hour()
+		dom := t.Day()
+		month := int(t.Month())
+		dow := int(t.Weekday())
+		for _, j := range jobs.mj {
+			if inArray(j.minute, minute) &&
+				inArray(j.hour, hour) &&
+				inArray(j.dom, dom) &&
+				inArray(j.month, month) &&
+				inArray(j.dow, dow) {
+				go runJob(*j)
+			}
+		}
+	}
 }

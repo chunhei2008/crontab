@@ -53,7 +53,7 @@ func set(w http.ResponseWriter, r *http.Request) {
 		h = fmt.Sprintf("%x", md5er.Sum(nil))
 	}
 
-	configJobs.add(h, jj)
+	configJobs.add(h, &jj)
 	_, err = flushConf()
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)

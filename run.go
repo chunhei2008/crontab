@@ -27,29 +27,7 @@ func jobHandle() {
 			tick = time.NewTicker(time.Second)
 			sysLog.Println("Start crontab")
 		case <-tick.C:
-			t := time.Now()
-			if t.Second() == 0 {
-				tJobs := configJobs.getJobs()
-				go runJobs(&tJobs)
-			}
-		}
-	}
-}
-
-func runJobs(jobs *map[string]job) {
-	t := time.Now()
-	minute := t.Minute()
-	hour := t.Hour()
-	dom := t.Day()
-	month := int(t.Month())
-	dow := int(t.Weekday())
-	for _, j := range *jobs {
-		if inArray(j.minute, minute) &&
-			inArray(j.hour, hour) &&
-			inArray(j.dom, dom) &&
-			inArray(j.month, month) &&
-			inArray(j.dow, dow) {
-			go runJob(j)
+			go configJobs.runJobs()
 		}
 	}
 }
@@ -68,7 +46,7 @@ func runJob(j job) {
 	pid := cmd.Process.Pid
 	spid := strconv.Itoa(pid)
 	j.Start = time.Now().Format(TIMEFORMAT)
-	runningJobs.add(spid, j)
+	runningJobs.add(spid, &j)
 	defer func() {
 		runningJobs.del(spid)
 		runLog.lg.Printf("[End] pid.%d %s %s %s\n", pid, j.Cmd, j.Args, j.Out)
