@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"runtime"
 )
@@ -18,6 +19,7 @@ const (
 	RUN_LOG_POSTFIX = `run.log`
 	SVR_LOG         = `svr.log`
 	DATEFORMAT      = `20060102`
+	TIMEFORMAT      = `2006-01-02 15:04:05`
 )
 
 func main() {
@@ -33,7 +35,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	go runJobs()
+	go jobHandle()
 
 	http.HandleFunc("/set", set)
 	http.HandleFunc("/get", get)

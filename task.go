@@ -1,12 +1,8 @@
 package main
 
 import (
-	"crypto/md5"
 	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
-	"strings"
+	"sync"
 )
 
 /*
@@ -27,38 +23,41 @@ type job struct {
 	dow     []int
 }
 
-func getJobs() ([]byte, error) {
-	lock.RLock()
-	defer lock.RUnlock()
-	allJobs, err := json.Marshal(jobs)
-	if err != nil {
-		return nil, err
-	}
-	return allJobs, nil
+func NewJobs() *Jobs {
+	return &Jobs{mj: make(map[string]job), lk: new(sync.RWMutex)}
 }
 
-func setJob(h string, j string) (bool, error) {
-	lock.Lock()
-	defer lock.Unlock()
-	decode := json.NewDecoder(strings.NewReader(j))
-	var jj job
-	if decerr := decode.Decode(&jj); decerr != nil {
-		return false, decerr
-	}
-	parseTime(&jj)
-	md5er := md5.New()
-	io.WriteString(md5er, j)
-	hsum := fmt.Sprintf("%x", md5er.Sum(nil))
-	jobs[hsum] = jj
-	return flushConf()
+type Jobs struct {
+	mj map[string]job
+	lk *sync.RWMutex
 }
 
-func delJob(h string) (bool, error) {
-	lock.Lock()
-	defer lock.Unlock()
-	if _, exists := jobs[h]; exists {
-		delete(jobs, h)
-		return flushConf()
-	}
-	return false, errors.New("not exists")
+func (jobs *Jobs) add(k string, v job) {
+	jobs.lk.Lock()
+	defer jobs.lk.Unlock()
+	jobs.mj[k] = v
+}
+
+func (jobs *Jobs) del(k string) {
+	jobs.lk.Lock()
+	defer jobs.lk.Unlock()
+	delete(jobs.mj, k)
+}
+
+func (jobs *Jobs) json() ([]byte, error) {
+	jobs.lk.RLock()
+	defer jobs.lk.RUnlock()
+	return json.Marshal(jobs.mj)
+}
+
+func (jobs *Jobs) getJobs() map[string]job {
+	jobs.lk.RLock()
+	defer jobs.lk.RUnlock()
+	return jobs.mj
+}
+
+func (jobs *Jobs) replaceJobs(mj map[string]job) {
+	jobs.lk.Lock()
+	defer jobs.lk.Unlock()
+	jobs.mj = mj
 }

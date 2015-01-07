@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"regexp"
@@ -22,7 +24,7 @@ import (
  */
 
 func get(w http.ResponseWriter, r *http.Request) {
-	allJobs, err := getJobs()
+	allJobs, err := configJobs.json()
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
 	} else {
@@ -38,7 +40,21 @@ func set(w http.ResponseWriter, r *http.Request) {
 	if j == "" {
 		fmt.Fprintf(w, "%s", "job empty")
 	}
-	_, err = setJob(h, j)
+	decode := json.NewDecoder(strings.NewReader(j))
+	var jj job
+	if decerr := decode.Decode(&jj); decerr != nil {
+		fmt.Fprintf(w, "%s", decerr)
+		return
+	}
+	parseTime(&jj)
+	if h == "" {
+		md5er := md5.New()
+		io.WriteString(md5er, j)
+		h = fmt.Sprintf("%x", md5er.Sum(nil))
+	}
+
+	configJobs.add(h, jj)
+	_, err = flushConf()
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
 	} else {
@@ -50,7 +66,8 @@ func del(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	h := r.FormValue("h")
 	h = strings.TrimSpace(h)
-	_, err = delJob(h)
+	configJobs.del(h)
+	_, err = flushConf()
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
 	} else {
@@ -94,9 +111,7 @@ func load(w http.ResponseWriter, r *http.Request) {
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
-	runLock.RLock()
-	brunning, err := json.Marshal(runnings)
-	runLock.RUnlock()
+	brunning, err := runningJobs.json()
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
 	} else {

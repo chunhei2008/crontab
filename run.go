@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"sync"
 	"time"
 )
 
@@ -13,12 +12,12 @@ import (
 * 任务执行
 * 开始 结束 日志
  */
-var runnings map[string]job = make(map[string]job, 20)
-var runLock *sync.RWMutex = new(sync.RWMutex)
-var tick *time.Ticker
 
-func runJobs() {
-	tick = time.NewTicker(time.Second)
+var configJobs *Jobs = NewJobs()
+var runningJobs *Jobs = NewJobs()
+
+func jobHandle() {
+	tick := time.NewTicker(time.Second)
 	for {
 		select {
 		case <-stopCh:
@@ -28,24 +27,27 @@ func runJobs() {
 			tick = time.NewTicker(time.Second)
 			sysLog.Println("Start crontab")
 		case <-tick.C:
-			t := time.Now()
-			if t.Second() == 0 {
-				minute := t.Minute()
-				hour := t.Hour()
-				dom := t.Day()
-				month := int(t.Month())
-				dow := int(t.Weekday())
-				lock.RLock()
-				for _, j := range jobs {
-					if inArray(j.minute, minute) &&
-						inArray(j.hour, hour) &&
-						inArray(j.dom, dom) &&
-						inArray(j.month, month) &&
-						inArray(j.dow, dow) {
-						go runJob(j)
-					}
-				}
-				lock.RUnlock()
+			tJobs := configJobs.getJobs()
+			go runJobs(&tJobs)
+		}
+	}
+}
+
+func runJobs(jobs *map[string]job) {
+	t := time.Now()
+	if t.Second() == 0 {
+		minute := t.Minute()
+		hour := t.Hour()
+		dom := t.Day()
+		month := int(t.Month())
+		dow := int(t.Weekday())
+		for _, j := range *jobs {
+			if inArray(j.minute, minute) &&
+				inArray(j.hour, hour) &&
+				inArray(j.dom, dom) &&
+				inArray(j.month, month) &&
+				inArray(j.dow, dow) {
+				go runJob(j)
 			}
 		}
 	}
@@ -64,14 +66,10 @@ func runJob(j job) {
 	}
 	pid := cmd.Process.Pid
 	spid := strconv.Itoa(pid)
-	j.Start = time.Now().Format(`2006-01-02 15:04:05`)
-	runLock.Lock()
-	runnings[spid] = j
-	runLock.Unlock()
+	j.Start = time.Now().Format(TIMEFORMAT)
+	runningJobs.add(spid, j)
 	defer func() {
-		runLock.Lock()
-		defer runLock.Unlock()
-		delete(runnings, spid)
+		runningJobs.del(spid)
 		runLog.lg.Printf("[End] pid.%d %s %s %s\n", pid, j.Cmd, j.Args, j.Out)
 	}()
 	runLog.lg.Printf("[Start] pid.%d %s %s %s\n", pid, j.Cmd, j.Args, j.Out)
@@ -94,6 +92,9 @@ func runJob(j job) {
 func inArray(array []int, item int) bool {
 	if len(array) < 1 {
 		return false
+	}
+	if array[0] == -1 {
+		return true
 	}
 	for _, v := range array {
 		if item == v {
