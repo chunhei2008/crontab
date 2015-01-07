@@ -27,28 +27,29 @@ func jobHandle() {
 			tick = time.NewTicker(time.Second)
 			sysLog.Println("Start crontab")
 		case <-tick.C:
-			tJobs := configJobs.getJobs()
-			go runJobs(&tJobs)
+			t := time.Now()
+			if t.Second() == 0 {
+				tJobs := configJobs.getJobs()
+				go runJobs(&tJobs)
+			}
 		}
 	}
 }
 
 func runJobs(jobs *map[string]job) {
 	t := time.Now()
-	if t.Second() == 0 {
-		minute := t.Minute()
-		hour := t.Hour()
-		dom := t.Day()
-		month := int(t.Month())
-		dow := int(t.Weekday())
-		for _, j := range *jobs {
-			if inArray(j.minute, minute) &&
-				inArray(j.hour, hour) &&
-				inArray(j.dom, dom) &&
-				inArray(j.month, month) &&
-				inArray(j.dow, dow) {
-				go runJob(j)
-			}
+	minute := t.Minute()
+	hour := t.Hour()
+	dom := t.Day()
+	month := int(t.Month())
+	dow := int(t.Weekday())
+	for _, j := range *jobs {
+		if inArray(j.minute, minute) &&
+			inArray(j.hour, hour) &&
+			inArray(j.dom, dom) &&
+			inArray(j.month, month) &&
+			inArray(j.dow, dow) {
+			go runJob(j)
 		}
 	}
 }
