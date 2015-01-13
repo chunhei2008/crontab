@@ -63,9 +63,10 @@ func (l *wyLogger) rename() {
 }
 
 func fileMonitor(l *wyLogger) {
+	tick := time.NewTicker(time.Second)
 	for {
 		select {
-		case <-time.Tick(time.Second):
+		case <-tick.C:
 			go fileCheck(l)
 		}
 	}
