@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -11,8 +12,11 @@ var sysLog *log.Logger
 var runLog *wyLogger
 
 func initLog() {
-	sysLogFile, _ := os.OpenFile(*logs+"sys.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
-
+	sysLogFile, err := os.OpenFile(*logs+"sys.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+	if err != nil {
+		fmt.Printf("%s \nStart failed!", err)
+		os.Exit(1)
+	}
 	sysLog = log.New(sysLogFile, "", log.LstdFlags)
 	runLog = newWyLogger(*logs, RUN_LOG_POSTFIX)
 }
