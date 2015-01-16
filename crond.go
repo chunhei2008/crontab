@@ -30,7 +30,7 @@ func main() {
 
 	loaded, loadErr := loadConf()
 	if !loaded {
-		fmt.Printf("Err %s exit.", loadErr)
+		fmt.Printf("Err %s exit.\n", loadErr)
 		os.Exit(1)
 	}
 
