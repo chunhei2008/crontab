@@ -12,7 +12,12 @@ var sysLog *log.Logger
 var runLog *wyLogger
 
 func initLog() {
-	sysLogFile, err := os.OpenFile(*logs+"sys.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+	slogs := *logs
+	if slogs[len(slogs)-1] != '/' {
+		*logs = *logs + "/"
+	}
+
+	sysLogFile, err := os.OpenFile(*logs+SVR_LOG, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 	if err != nil {
 		fmt.Printf("%s \nStart failed!", err)
 		os.Exit(1)

@@ -36,7 +36,7 @@ func loadConf() (bool, error) {
 		line, rdErr := rd.ReadString('\n')
 
 		if rdErr != nil && rdErr != io.EOF {
-			sysLog.Println("Err %s.\n", rdErr)
+			sysLog.Printf("Err %s.\n", rdErr)
 			return false, rdErr
 		}
 		line = strings.TrimSpace(line)
