@@ -37,7 +37,7 @@ A crontab tool build by golang
 ## API：
 
 |api|说明|
-|---|:--:|
+|---|--|
 |/get|获取当前设置的任务列表  json|
 |/set?h=key&j=job| 设置一个键值为key的任务/修改一个键值为key的任务（h为空或者不设置时，key=md5(job)）|
 |/del?h=key       |删除键值为key的任务，下次不再执行|
