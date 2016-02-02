@@ -25,7 +25,7 @@ A crontab tool build by golang
 
 `{"time":"* * * * *","cmd":"php","args":["-v"],"out":"./logs/php_v.log","comment":"备注"}`
 
-每一行为一个jjson对象，字段说明：
+每一行为一个json对象，字段说明：
 * time:任务执行时间，参考linux crontab
 * cmd:可执行程序
 * args:可执行程序参数
